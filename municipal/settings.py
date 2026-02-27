@@ -62,9 +62,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [
+    "https://civicsaathi-production.up.railway.app/",
+    "https://*.railway.app",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+
+
 # CORS Settings for Next.js Frontend
 CORS_ALLOWED_ORIGINS = [
-    "*",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
