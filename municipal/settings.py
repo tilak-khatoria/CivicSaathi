@@ -35,7 +35,6 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,14 +69,14 @@ MIDDLEWARE = [
 CSRF_TRUSTED_ORIGINS = [
     "https://civicsaathi-production.up.railway.app/",
     "https://*.railway.app",
+    "https://frontend-three-jet-50.vercel.app",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
 
-
-
 # CORS Settings for Next.js Frontend
 CORS_ALLOWED_ORIGINS = [
+    "https://frontend-three-jet-50.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
