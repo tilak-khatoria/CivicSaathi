@@ -93,7 +93,7 @@ npm install
 
 3. **Run Next.js development server**
 ```powershell
-npm run dev
+
 ```
 
 Frontend will be available at: `http://localhost:3000`
@@ -169,7 +169,7 @@ CivicSaathi/
 
 ### Authentication
 - `POST /api/auth/register/` - User registration
-- `POST /api/auth/login/` - User login
+- `POST /api/auth/lonpm run devgin/` - User login
 - `POST /api/auth/logout/` - User logout
 - `GET /api/auth/me/` - Current user info
 - `POST /api/worker/login/` - Worker login
