@@ -17,7 +17,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
-
+.env
 # Django generated files
 media/
 staticfiles/

@@ -109,12 +109,28 @@ WSGI_APPLICATION = "municipal.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+USE_SQLITE = os.getenv('USE_SQLITE', 'False').lower() in ('true', '1', 't')
+
+DEFAULT_POSTGRES_URL = "postgresql://postgres:OEBjaayTYPxqbGMagqOMiMZOlBcnDiAk@switchback.proxy.rlwy.net:39953/railway"
+import dj_database_url
+if USE_SQLITE:
+    # Explicitly requested SQLite (local development)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    # Use PostgreSQL - either from DATABASE_URL or default Railway URL
+    db_url = DEFAULT_POSTGRES_URL
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=db_url,
+            conn_max_age=600,
+        )
+    }
+
 
 
 
