@@ -64,7 +64,7 @@ MIDDLEWARE = [
 
 # CORS Settings for Next.js Frontend
 CORS_ALLOWED_ORIGINS = [
-    "civicsaathi-production.up.railway.app",
+    "https://civicsaathi-production.up.railway.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
