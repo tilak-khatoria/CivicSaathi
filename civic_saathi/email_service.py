@@ -154,6 +154,50 @@ Thank you for helping improve the city.
 
 
 # ---------------------------------------------------------------------------
+# Worker Assignment Notification (worker-facing — Multi-Channel Alert)
+# ---------------------------------------------------------------------------
+
+def send_worker_new_assignment_email(complaint, worker):
+    """Send a detailed assignment notification email to the worker.
+
+    Part of the Multi-Channel Worker Alert System.  Triggered automatically
+    when the Automated Assignment Layer allocates a complaint to a worker.
+    """
+    try:
+        if not worker or not worker.user.email:
+            return False
+
+        sla_str = (
+            complaint.sla_deadline.strftime('%d %b %Y, %H:%M')
+            if complaint.sla_deadline else 'Not set'
+        )
+        department_name = complaint.department.name if complaint.department else 'N/A'
+        office_name = complaint.office.name if complaint.office else 'N/A'
+        dashboard_link = f"{settings.SITE_URL}/worker/complaint/{complaint.id}"
+
+        subject = f"🔔 New Complaint Assigned — #{complaint.id}"
+        message = (
+            f"Hello {worker.user.first_name or worker.user.username},\n\n"
+            f"A new complaint has been assigned to you.\n\n"
+            f"Complaint Title : {complaint.title}\n"
+            f"Complaint ID    : #{complaint.id}\n"
+            f"Location        : {complaint.location}, {complaint.city}\n"
+            f"Department      : {department_name}\n"
+            f"Office          : {office_name}\n"
+            f"SLA Deadline    : {sla_str}\n\n"
+            f"View on Dashboard: {dashboard_link}\n\n"
+            f"Please log in to your worker dashboard and take action before the SLA deadline.\n\n"
+            f"– CivicSaathi\n"
+        )
+
+        send_email(subject, message, worker.user.email)
+        return True
+    except Exception as e:
+        print(f"Error sending worker new-assignment email: {e}")
+        return False
+
+
+# ---------------------------------------------------------------------------
 # Legacy / extended functions (worker/officer notifications)
 # ---------------------------------------------------------------------------
 

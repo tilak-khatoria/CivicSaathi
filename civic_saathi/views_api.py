@@ -377,6 +377,11 @@ class ComplaintCreateView(generics.CreateAPIView):
         )
 
         # Log the sorting decision for full traceability.
+        # old_status='FILTERING' → new_status='SORTING' represents the department-routing
+        # step only. The subsequent SORTING → ASSIGNED (or PENDING) transition is already
+        # logged independently by WorkerAssignmentLayer.assign_worker(), so keeping these
+        # two statuses distinct prevents the "Being Sorted → Assigned" entry from
+        # appearing twice in the activity log.
         ComplaintLog.objects.create(
             complaint=complaint,
             action_by=self.request.user,
@@ -388,8 +393,8 @@ class ComplaintCreateView(generics.CreateAPIView):
                     f"Reason: {sorting_result['reason']}"
                 )
             ),
-            old_status='SORTING',
-            new_status=complaint.status,
+            old_status='FILTERING',
+            new_status='SORTING',
             new_dept=sorting_result.get('department'),
         )
 
@@ -919,6 +924,85 @@ def worker_dashboard_stats(request):
     }
     
     return Response(stats)
+
+
+# -------------------------
+# Worker Notification API (Multi-Channel Alert System)
+# -------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def worker_notifications(request):
+    """Return the current worker's notifications, newest first.
+
+    Query params
+    ────────────
+    unread_only=true   – filter to unread notifications only
+    """
+    from .models import WorkerNotification
+
+    user = request.user
+    if not hasattr(user, 'worker'):
+        return Response({'error': 'Not a worker'}, status=status.HTTP_403_FORBIDDEN)
+
+    qs = WorkerNotification.objects.filter(worker=user.worker).select_related('complaint')
+
+    if request.query_params.get('unread_only', '').lower() == 'true':
+        qs = qs.filter(is_read=False)
+
+    notifications = qs[:50]  # cap at 50 most recent
+    data = [
+        {
+            'id': n.id,
+            'type': n.notification_type,
+            'title': n.title,
+            'message': n.message,
+            'is_read': n.is_read,
+            'complaint_id': n.complaint_id,
+            'complaint_title': n.complaint.title if n.complaint else '',
+            'created_at': n.created_at.isoformat(),
+        }
+        for n in notifications
+    ]
+
+    unread_count = WorkerNotification.objects.filter(worker=user.worker, is_read=False).count()
+
+    return Response({
+        'notifications': data,
+        'unread_count': unread_count,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def worker_notification_mark_read(request, pk):
+    """Mark a single notification as read."""
+    from .models import WorkerNotification
+
+    user = request.user
+    if not hasattr(user, 'worker'):
+        return Response({'error': 'Not a worker'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        notification = WorkerNotification.objects.get(pk=pk, worker=user.worker)
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        return Response({'status': 'ok'})
+    except WorkerNotification.DoesNotExist:
+        return Response({'error': 'Notification not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def worker_notifications_mark_all_read(request):
+    """Mark all unread notifications for the current worker as read."""
+    from .models import WorkerNotification
+
+    user = request.user
+    if not hasattr(user, 'worker'):
+        return Response({'error': 'Not a worker'}, status=status.HTTP_403_FORBIDDEN)
+
+    count = WorkerNotification.objects.filter(worker=user.worker, is_read=False).update(is_read=True)
+    return Response({'status': 'ok', 'marked': count})
 
 
 @api_view(['GET'])

@@ -470,6 +470,37 @@ class WorkerAssignmentLayer:
         except Exception:
             pass  # notification failure must never block the assignment
 
+        # ── Step 8: Multi-Channel Worker Alert System ──────────────────────────
+        #  8a – In-app notification record (persisted for bell + polling)
+        try:
+            from .models import WorkerNotification  # noqa: PLC0415
+            sla_str = (
+                sla_deadline.strftime('%d %b %Y, %H:%M')
+                if sla_deadline else 'Not set'
+            )
+            WorkerNotification.objects.create(
+                worker=selected_worker,
+                complaint=complaint,
+                notification_type='ASSIGNMENT',
+                title='New Complaint Assigned',
+                message=(
+                    f"Complaint \"{complaint.title}\" (#{complaint.id}) "
+                    f"has been assigned to you. "
+                    f"Location: {complaint.location}, {complaint.city}. "
+                    f"SLA Deadline: {sla_str}."
+                ),
+            )
+        except Exception as exc:
+            import traceback; traceback.print_exc()
+            pass  # notification persistence failure must not block assignment
+
+        #  8b – Email notification to worker
+        try:
+            from .email_service import send_worker_new_assignment_email  # noqa: PLC0415
+            send_worker_new_assignment_email(complaint, selected_worker)
+        except Exception:
+            pass  # email failure must not block the assignment
+
         return {
             'success': True,
             'worker': selected_worker,

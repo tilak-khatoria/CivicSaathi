@@ -37,6 +37,11 @@ urlpatterns = [
     path('worker/dashboard/stats/', views_api.worker_dashboard_stats, name='worker_dashboard_stats'),
     path('worker/complaints/<int:pk>/', views_api.worker_complaint_detail, name='worker_complaint_detail'),
     path('worker/complaints/<int:pk>/complete/', views_api.worker_complete_complaint, name='worker_complete_complaint'),
+
+    # Worker Notifications (Multi-Channel Alert System)
+    path('worker/notifications/', views_api.worker_notifications, name='worker_notifications'),
+    path('worker/notifications/<int:pk>/read/', views_api.worker_notification_mark_read, name='worker_notification_mark_read'),
+    path('worker/notifications/mark-all-read/', views_api.worker_notifications_mark_all_read, name='worker_notifications_mark_all_read'),
     
     # Attendance
     path('attendance/mark/', views_api.mark_attendance, name='mark_attendance'),

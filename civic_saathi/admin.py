@@ -7,7 +7,8 @@ from .models import (
     Department, Officer, Worker,
     Complaint, ComplaintLog, Assignment,
     ComplaintCategory, ComplaintEscalation, SLAConfig,
-    WorkerAttendance, CustomUser, AIVerificationLog
+    WorkerAttendance, CustomUser, AIVerificationLog,
+    WorkerNotification
 )
 
 admin.site.site_header = "Municipal Governance Panel"
@@ -458,3 +459,15 @@ class AIVerificationLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# -----------------------------
+# Worker Notification Admin
+# -----------------------------
+@admin.register(WorkerNotification)
+class WorkerNotificationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'worker', 'notification_type', 'title', 'is_read', 'created_at')
+    list_filter = ('notification_type', 'is_read', 'created_at')
+    search_fields = ('title', 'message', 'worker__user__username')
+    readonly_fields = ('worker', 'complaint', 'notification_type', 'title', 'message', 'created_at')
+    ordering = ('-created_at',)

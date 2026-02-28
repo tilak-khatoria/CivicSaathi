@@ -494,3 +494,48 @@ class AIVerificationLog(models.Model):
 
     def __str__(self):
         return f"AI Log #{self.id} — Complaint {self.complaint.id} — {self.result}"
+
+
+# -------------------------
+# Worker Notification (Multi-Channel Alert System)
+# -------------------------
+class WorkerNotification(models.Model):
+    """
+    Persistent notification record for every alert sent to a worker.
+    Supports the in-app notification bell, read/unread tracking,
+    and feeds the frontend polling endpoint.
+    """
+    NOTIFICATION_TYPE_CHOICES = [
+        ('ASSIGNMENT', 'New Complaint Assignment'),
+        ('REASSIGNMENT', 'Complaint Reassigned'),
+        ('SLA_WARNING', 'SLA Deadline Warning'),
+        ('ESCALATION', 'Complaint Escalated'),
+    ]
+
+    worker = models.ForeignKey(
+        Worker,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+    )
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name='worker_notifications',
+    )
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPE_CHOICES,
+        default='ASSIGNMENT',
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Worker Notification"
+        verbose_name_plural = "Worker Notifications"
+
+    def __str__(self):
+        return f"[{self.notification_type}] {self.title} → {self.worker.user.username}"
