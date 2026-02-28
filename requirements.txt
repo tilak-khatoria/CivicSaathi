@@ -22,5 +22,3 @@ Faker>=19.0.0
 pytz>=2023.3
 dj_database_url
 gunicorn
-
-genai
